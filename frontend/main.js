@@ -1,93 +1,145 @@
-const firebaseConfig = {
-    // Your Firebase config here
-};
+// DOM Elements
+const questionInput = document.querySelector('.question-input');
+const sendButton = document.querySelector('.send-button');
+const chatHistoryContent = document.querySelector('.history-content');
+const modelOptions = document.querySelectorAll('.model-option input[type="checkbox"]');
 
-// Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.getAuth(app);
+// State
+let conversations = [];
 
-const loginBtn = document.getElementById('login-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const fetchAllBtn = document.getElementById('fetch-all-btn');
-const promptEl = document.getElementById('prompt');
-const responseWindowsEl = document.getElementById('response-windows');
-
-let firebaseUser = null;
-
-// Auth state listener
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        firebaseUser = user;
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-    } else {
-        firebaseUser = null;
-        loginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
+// Event Listeners
+sendButton.addEventListener('click', handleSendMessage);
+questionInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
     }
 });
 
-// Login
-loginBtn.addEventListener('click', () => {
-    const provider = new firebase.GoogleAuthProvider();
-    auth.signInWithPopup(provider);
-});
-
-// Logout
-logoutBtn.addEventListener('click', () => {
-    auth.signOut();
-});
-
-// Fetch all
-fetchAllBtn.addEventListener('click', async () => {
-    if (!firebaseUser) {
-        alert('Please login first!');
-        return;
-    }
-
-    const question = promptEl.value;
-    const selectedModels = Array.from(document.querySelectorAll('input[name="model"]:checked')).map(el => el.value);
+async function handleSendMessage() {
+    const question = questionInput.value.trim();
+    const selectedModels = Array.from(modelOptions)
+        .filter(checkbox => checkbox.checked)
+        .map(checkbox => checkbox.value);
 
     if (!question || selectedModels.length === 0) {
-        alert('Please enter a prompt and select at least one model.');
+        alert('Please enter a question and select at least one model.');
         return;
     }
 
-    responseWindowsEl.innerHTML = '';
+    // Clear input
+    questionInput.value = '';
 
+    // Add to chat history
+    const historyItem = document.createElement('div');
+    historyItem.className = 'history-item';
+    historyItem.textContent = question;
+    chatHistoryContent.innerHTML = ''; // Clear "No history yet" message
+    chatHistoryContent.appendChild(historyItem);
+
+    // Create response containers
+    const responseContainer = document.createElement('div');
+    responseContainer.className = 'response-container';
+    chatHistoryContent.appendChild(responseContainer);
+
+    // Send request to each selected model
     for (const model of selectedModels) {
-        showLoading(model);
         try {
-            const idToken = await firebaseUser.getIdToken();
-            const response = await fetch(`/api/ask/${model}`, {
+            const response = await fetch(`http://localhost:8080/api/ask/${model}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${idToken}`
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ question, history: [] })
+                body: JSON.stringify({ 
+                    question: question,
+                    history: []
+                })
             });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
-            showResponse(model, data.response);
+            displayResponse(responseContainer, model, data);
         } catch (error) {
-            showError(model, error);
+            displayError(responseContainer, model, error);
         }
     }
-});
-
-function showLoading(model) {
-    const window = document.createElement('div');
-    window.className = 'response-window';
-    window.innerHTML = `<h3>${model}</h3><p>Loading...</p>`;
-    responseWindowsEl.appendChild(window);
 }
 
-function showResponse(model, response) {
-    const window = responseWindowsEl.querySelector(`:nth-child(${Array.from(document.querySelectorAll('input[name="model"]:checked')).findIndex(el => el.value === model) + 1})`);
-    window.innerHTML = `<h3>${model}</h3><p>${response}</p>`;
+function displayResponse(container, model, data) {
+    const responseEl = document.createElement('div');
+    responseEl.className = 'model-response';
+    responseEl.innerHTML = `
+        <div class="model-header">
+            <span class="model-name">${model.toUpperCase()}</span>
+        </div>
+        <div class="response-text">
+            ${data.error || data.response || data.message || 'No response'}
+        </div>
+    `;
+    container.appendChild(responseEl);
 }
 
-function showError(model, error) {
-    const window = responseWindowsEl.querySelector(`:nth-child(${Array.from(document.querySelectorAll('input[name="model"]:checked')).findIndex(el => el.value === model) + 1})`);
-    window.innerHTML = `<h3>${model}</h3><p>Error: ${error.message}</p>`;
+function displayError(container, model, error) {
+    const responseEl = document.createElement('div');
+    responseEl.className = 'model-response error';
+    responseEl.innerHTML = `
+        <div class="model-header">
+            <span class="model-name">${model.toUpperCase()}</span>
+        </div>
+        <div class="response-text error">
+            Error: ${error.message}
+        </div>
+    `;
+    container.appendChild(responseEl);
 }
+
+// Add these styles to match the new UI
+const additionalStyles = document.createElement('style');
+additionalStyles.textContent = `
+    .history-item {
+        padding: 12px;
+        margin: 8px 0;
+        background-color: var(--secondary-bg);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .model-response {
+        margin: 8px 0;
+        padding: 12px;
+        background-color: var(--secondary-bg);
+        border-radius: 8px;
+        border: 1px solid var(--accent-color);
+    }
+
+    .model-response.error {
+        border-color: #ff4444;
+    }
+
+    .model-header {
+        margin-bottom: 8px;
+        color: var(--accent-color);
+        font-weight: 500;
+    }
+
+    .response-text {
+        white-space: pre-wrap;
+    }
+
+    .response-text.error {
+        color: #ff4444;
+    }
+
+    .chat-history {
+        overflow-y: auto;
+    }
+
+    .no-history {
+        color: var(--text-secondary);
+        text-align: center;
+        margin-top: 20px;
+    }
+`;

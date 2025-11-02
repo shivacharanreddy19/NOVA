@@ -1,48 +1,58 @@
 package com.example.aiaggregator;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseToken;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
+/**
+ * Security configuration for the application.
+ */
 @Configuration
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableWebSecurity
+public class SecurityConfig {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.addFilterBefore(new FirebaseTokenFilter(), UsernamePasswordAuthenticationFilter.class)
-                .authorizeRequests()
-                .antMatchers("/api/**").authenticated()
-                .anyRequest().permitAll()
-                .and()
-                .csrf().disable();
+    /**
+     * Configures the security filter chain to disable authentication for API endpoints.
+     *
+     * @param http the HttpSecurity to configure
+     * @return the SecurityFilterChain
+     * @throws Exception if an error occurs
+     */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/api/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .httpBasic(httpBasic -> httpBasic.disable())
+            .formLogin(form -> form.disable());
+
+        return http.build();
     }
 
-    private static class FirebaseTokenFilter extends OncePerRequestFilter {
-        @Override
-        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-            String header = request.getHeader("Authorization");
-            if (header != null && header.startsWith("Bearer ")) {
-                String idToken = header.substring(7);
-                try {
-                    FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
-                    // You can get user info from decodedToken if needed
-                    SecurityContextHolder.getContext().setAuthentication(new FirebaseAuthentication(decodedToken));
-                } catch (Exception e) {
-                    // Invalid token
-                }
+    /**
+     * Configures Cross-Origin Resource Sharing (CORS) for the application.
+     *
+     * This is necessary for local development when the frontend (e.g., running on localhost:5173)
+     * needs to make API calls to the backend (running on localhost:8080).
+     *
+     * @return A WebMvcConfigurer bean with CORS settings.
+     */
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/api/**") // Adjust the path pattern to match your API endpoints
+                        .allowedOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:5175") // The origin of your frontend dev server
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
             }
-            filterChain.doFilter(request, response);
-        }
+        };
     }
 }

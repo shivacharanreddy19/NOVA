@@ -1,57 +1,182 @@
+:root {
+    --primary-bg: #0f0f0f;
+    --secondary-bg: #1a1a1a;
+    --accent-color: #4169e1;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --border-color: #2a2a2a;
+}
+
 body {
-    background-color: #1a1a1d;
-    color: #c5c6c7;
-    font-family: sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     margin: 0;
+    padding: 0;
+    line-height: 1.5;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .container {
-    width: 80%;
-    max-width: 1200px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+header {
+    padding: 20px 0;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+    background-color: var(--accent-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 24px;
 }
 
 h1 {
-    text-align: center;
+    font-size: 28px;
+    margin: 0;
+    font-weight: 600;
 }
 
-.auth-container {
-    text-align: center;
-    margin-bottom: 20px;
+.tagline {
+    color: var(--text-secondary);
+    margin: 8px 0 0 0;
+    font-size: 14px;
 }
 
-.chat-container {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
+main {
+    display: flex;
+    gap: 24px;
+    flex: 1;
+    height: calc(100vh - 120px);
+}
+
+.chat-history {
+    width: 280px;
+    background-color: var(--secondary-bg);
+    border-radius: 12px;
     padding: 20px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.prompt-container {
+.chat-interface {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    justify-content: flex-end;
+    padding: 20px;
+    gap: 20px;
 }
 
-textarea {
+.input-container {
+    position: relative;
     width: 100%;
-    height: 100px;
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.question-input {
+    width: 100%;
+    height: 60px;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    padding: 16px;
+    font-size: 16px;
+    resize: none;
+    box-sizing: border-box;
+}
+
+.send-button {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    background-color: var(--accent-color);
+    border: none;
     border-radius: 8px;
-    color: #c5c6c7;
-    padding: 10px;
-    resize: vertical;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.send-button:hover {
+    background-color: #5479f7;
+}
+
+.send-icon {
+    width: 24px;
+    height: 24px;
+    fill: white;
 }
 
 .model-selection {
+    margin-top: 20px;
+}
+
+.model-selection h3 {
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: normal;
+    margin-bottom: 12px;
+}
+
+.model-options {
     display: flex;
-    gap: 15px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.model-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.model-option:hover {
+    border-color: var(--accent-color);
+}
+
+.model-option input[type="checkbox"] {
+    display: none;
+}
+
+.model-option input[type="checkbox"]:checked + .model-icon {
+    background-color: var(--accent-color);
+}
+
+.model-icon {
+    width: 24px;
+    height: 24px;
+    background-color: var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
 }
 
 button {
@@ -80,4 +205,27 @@ button {
 
 .response-window h3 {
     margin-top: 0;
+    color: #61dafb;
+    border-bottom: 1px solid rgba(97, 218, 251, 0.3);
+    padding-bottom: 8px;
+}
+
+.response-content {
+    margin-top: 15px;
+}
+
+.response-summary {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.summary-title {
+    color: #61dafb;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
+
+.error-message {
+    color: #ff6b6b;
 }

@@ -1,33 +1,37 @@
 package com.example.aiaggregator;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.example.aiaggregator.model.ChatRequest;
+import com.example.aiaggregator.model.ChatResponse;
+import com.example.aiaggregator.service.AIService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
 public class ApiController {
 
-    @Value("${GPT_API_KEY}")
-    private String gptApiKey;
+    private final Map<String, AIService> aiServices;
 
-    @Value("${GEMINI_API_KEY}")
-    private String geminiApiKey;
+    public ApiController(@Qualifier("openAiService") AIService openAiService,
+                         @Qualifier("geminiService") AIService geminiService) {
+        this.aiServices = Map.of(
+                "gpt", openAiService,
+                "gemini", geminiService
+        );
+    }
 
     @PostMapping("/ask/{model}")
-    public ResponseEntity<String> askModel(
-            @PathVariable String model,
-            @RequestBody String request) {
-        // TODO: Implement AI model logic
-        String apiKey;
-        if ("gpt".equalsIgnoreCase(model)) {
-            apiKey = gptApiKey;
-        } else if ("gemini".equalsIgnoreCase(model)) {
-            apiKey = geminiApiKey;
-        } else {
-            return ResponseEntity.badRequest().body("Unsupported model");
+    public ResponseEntity<ChatResponse> ask(@PathVariable String model, @RequestBody ChatRequest request) {
+        AIService service = aiServices.get(model);
+
+        if (service == null) {
+            throw new IllegalArgumentException("Unsupported AI model: " + model);
         }
-        // Now you can use the apiKey in your AI model logic
-        return ResponseEntity.ok("Response from " + model + " using key: " + apiKey);
+
+        ChatResponse response = service.generateResponse(request);
+        return ResponseEntity.ok(response);
     }
 }

@@ -3,27 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Model Aggregator</title>
+    <title>NOVA - Network of Versatile AI's</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>AI Model Aggregator</h1>
-        <div class="auth-container">
-            <button id="login-btn">Login with Google</button>
-            <button id="logout-btn" style="display: none;">Logout</button>
-        </div>
-        <div class="chat-container">
-            <div class="prompt-container">
-                <textarea id="prompt" placeholder="Enter your prompt..."></textarea>
-                <div class="model-selection">
-                    <label><input type="checkbox" name="model" value="gpt"> GPT</label>
-                    <label><input type="checkbox" name="model" value="gemini"> Gemini</label>
+        <header>
+            <div class="logo-container">
+                <div class="logo">N</div>
+                <h1>NOVA</h1>
+                <div class="user-profile">
+                    <button id="login-btn" class="profile-button">
+                        <img src="user-profile.svg" alt="Profile" />
+                    </button>
                 </div>
-                <button id="fetch-all-btn">Fetch All</button>
             </div>
-            <div id="response-windows" class="response-windows"></div>
-        </div>
+            <p class="tagline">network of versatile AI's</p>
+        </header>
+
+        <main>
+            <section class="chat-history">
+                <h2>Chat History</h2>
+                <div class="history-content">
+                    <p class="no-history">No history yet.</p>
+                </div>
+            </section>
+
+            <section class="chat-interface">
+                <div class="input-container">
+                    <textarea 
+                        placeholder="Ask a question and compare AI responses..."
+                        class="question-input"
+                    ></textarea>
+                    <button class="send-button">
+                        <svg viewBox="0 0 24 24" class="send-icon">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="model-selection">
+                    <h3>Select models:</h3>
+                    <div class="model-options">
+                        <label class="model-option">
+                            <input type="checkbox" name="model" value="gpt" checked>
+                            <span class="model-icon gpt">🤖</span>
+                            GPT-4
+                        </label>
+                        <label class="model-option">
+                            <input type="checkbox" name="model" value="gemini" checked>
+                            <span class="model-icon gemini">✨</span>
+                            Gemini 1.5
+                        </label>
+                        <label class="model-option">
+                            <input type="checkbox" name="model" value="claude">
+                            <span class="model-icon claude">🔮</span>
+                            Claude 3
+                        </label>
+                        <label class="model-option">
+                            <input type="checkbox" name="model" value="copilot">
+                            <span class="model-icon copilot">👨‍💻</span>
+                            Copilot
+                        </label>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
